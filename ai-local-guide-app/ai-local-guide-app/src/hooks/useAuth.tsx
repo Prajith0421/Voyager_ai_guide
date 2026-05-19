@@ -59,13 +59,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [configured])
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const { error } = await signInWithEmail(email, password)
+    const { data, error } = await signInWithEmail(email, password)
     if (error) throw error
+    if (data.session) {
+      setSession(data.session)
+      setUser(data.session.user)
+    }
   }, [])
 
   const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await signUpWithEmail(email, password)
+    const { data, error } = await signUpWithEmail(email, password)
     if (error) throw error
+    if (data.session) {
+      setSession(data.session)
+      setUser(data.session.user)
+      return
+    }
+    if (data.user) {
+      throw new Error('Account created. Check your email to confirm, then sign in.')
+    }
   }, [])
 
   const logout = useCallback(async () => {

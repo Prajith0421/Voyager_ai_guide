@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 import { useLocationContext } from '../../hooks/useLocationContext'
 import { weatherEmoji } from '../../utils/weatherCodes'
-import { IconLogo, IconSparkles } from '../ui/Icons'
+import { IconBookmark, IconLogo, IconSparkles } from '../ui/Icons'
 
 export default function DashboardHeader() {
   const { location, weather, loadingLocation, places } = useLocationContext()
@@ -70,20 +70,27 @@ export default function DashboardHeader() {
             </div>
           </motion.div>
         )}
-        <button
+        <motion.button
           type="button"
           onClick={() => navigate('/saved')}
-          className="hidden lg:block text-xs font-medium text-slate-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+          whileHover={{ scale: 1.05, backgroundColor: 'rgba(255,255,255,0.08)' }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-white px-2.5 sm:px-3 py-1.5 rounded-lg transition-colors"
+          aria-label="Saved places"
         >
-          Saved
-        </button>
-        <button
+          <IconBookmark className="w-4 h-4 shrink-0" />
+          <span className="hidden sm:inline">Saved</span>
+        </motion.button>
+        <motion.button
           type="button"
           onClick={() => navigate('/profile')}
-          className="w-9 h-9 rounded-xl gradient-accent text-sm font-bold text-white flex items-center justify-center shadow-glow hover:scale-105 transition-transform"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.92 }}
+          className="w-9 h-9 rounded-xl gradient-accent text-sm font-bold text-white flex items-center justify-center shadow-glow"
+          aria-label="Account"
         >
-          {user?.email?.[0]?.toUpperCase() ?? '?'}
-        </button>
+          {user?.email?.[0]?.toUpperCase()}
+        </motion.button>
       </div>
     </header>
   )

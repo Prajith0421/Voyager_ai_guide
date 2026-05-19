@@ -1,4 +1,57 @@
-import type { Place, PlaceCategory } from '../types'
+import type { Place, PlaceCategory, SavedPlace } from '../types'
+
+const PLACE_CATEGORIES: PlaceCategory[] = [
+  'cafe',
+  'restaurant',
+  'attraction',
+  'park',
+  'mall',
+  'museum',
+  'nightlife',
+  'hotel',
+]
+
+export function toPlaceCategory(category: string): PlaceCategory {
+  return PLACE_CATEGORIES.includes(category as PlaceCategory)
+    ? (category as PlaceCategory)
+    : 'attraction'
+}
+
+export function placesMatch(a: Place, b: Place): boolean {
+  return (
+    a.id === b.id ||
+    (a.name === b.name &&
+      Math.abs(a.lat - b.lat) < 0.002 &&
+      Math.abs(a.lng - b.lng) < 0.002)
+  )
+}
+
+export function savedPlaceToPlace(saved: SavedPlace): Place {
+  return {
+    id: saved.place_id,
+    name: saved.name,
+    category: toPlaceCategory(saved.category),
+    lat: saved.lat,
+    lng: saved.lng,
+    address: saved.address,
+  }
+}
+
+export function distanceMeters(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number }
+): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180
+  const earthRadius = 6371000
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const lat1 = toRad(a.lat)
+  const lat2 = toRad(b.lat)
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  return 2 * earthRadius * Math.asin(Math.sqrt(h))
+}
 
 export const CATEGORY_META: Record<
   PlaceCategory,

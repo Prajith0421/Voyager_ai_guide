@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
@@ -7,8 +7,7 @@ import { categoryIcon, userIcon } from '../../utils/leafletIcons'
 import { useLocationContext } from '../../hooks/useLocationContext'
 import { useAppUI } from '../../hooks/useAppUI'
 import PlaceSaveButton from '../PlaceSaveButton'
-import PlaceDetailPanel from './PlaceDetailPanel'
-import { CATEGORY_META } from '../../utils/placeHelpers'
+import { CATEGORY_META, placesMatch } from '../../utils/placeHelpers'
 import 'leaflet/dist/leaflet.css'
 
 const MAP_TILES =
@@ -24,6 +23,15 @@ function MapResize() {
       clearTimeout(t2)
     }
   }, [map])
+  return null
+}
+
+function MapFlyToPlace({ place }: { place: Place | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (!place) return
+    map.flyTo([place.lat, place.lng], 16, { duration: 1.2, easeLinearity: 0.25 })
+  }, [place?.id, place?.lat, place?.lng, map])
   return null
 }
 
@@ -50,10 +58,10 @@ function MapFitHighlights({ places }: { places: Place[] }) {
 
 function Markers({
   places,
-  highlightedIds,
+  highlightedPlaces,
 }: {
   places: Place[]
-  highlightedIds: Set<string>
+  highlightedPlaces: Place[]
 }) {
   const { setSelectedPlace } = useAppUI()
   const list = useMemo(() => places.slice(0, 150), [places])
@@ -64,8 +72,13 @@ function Markers({
         <Marker
           key={place.id}
           position={[place.lat, place.lng]}
-          icon={categoryIcon(place.category, highlightedIds.has(place.id))}
-          zIndexOffset={highlightedIds.has(place.id) ? 1000 : 0}
+          icon={categoryIcon(
+            place.category,
+            highlightedPlaces.some((hp) => placesMatch(hp, place))
+          )}
+          zIndexOffset={
+            highlightedPlaces.some((hp) => placesMatch(hp, place)) ? 1000 : 0
+          }
           eventHandlers={{ click: () => setSelectedPlace(place) }}
         >
           <Popup className="map-place-popup">
@@ -85,9 +98,15 @@ function Markers({
 
 export default function DashboardMap() {
   const { location, places, loadingLocation, loadingPlaces } = useLocationContext()
-  const { highlightedPlaces, selectedPlace, setSelectedPlace, setHighlightedPlaces } =
-    useAppUI()
+  const {
+    highlightedPlaces,
+    selectedPlace,
+    setSelectedPlace,
+    setHighlightedPlaces,
+    pendingOpenPlace,
+  } = useAppUI()
   const [mapReady, setMapReady] = useState(false)
+  const prevCoordKey = useRef('')
 
   useEffect(() => {
     setMapReady(true)
@@ -98,15 +117,22 @@ export default function DashboardMap() {
     : ''
 
   useEffect(() => {
-    if (!coordKey) return
+    if (!coordKey || coordKey === prevCoordKey.current) return
+
+    const openingSavedPlace = pendingOpenPlace !== null
+    prevCoordKey.current = coordKey
+
+    if (openingSavedPlace) return
+
     setSelectedPlace(null)
     setHighlightedPlaces([])
-  }, [coordKey, setSelectedPlace, setHighlightedPlaces])
+  }, [coordKey, pendingOpenPlace, setSelectedPlace, setHighlightedPlaces])
 
-  const highlightedIds = useMemo(
-    () => new Set(highlightedPlaces.map((p) => p.id)),
-    [highlightedPlaces]
-  )
+  const orphanSelectedPlace = useMemo(() => {
+    if (!selectedPlace) return null
+    const inList = places.some((p) => placesMatch(p, selectedPlace))
+    return inList ? null : selectedPlace
+  }, [places, selectedPlace])
 
   if (loadingLocation && !location) {
     return (
@@ -170,6 +196,7 @@ export default function DashboardMap() {
           />
           <MapResize />
           <MapFlyToCity lat={lat} lng={lng} zoom={13} />
+          <MapFlyToPlace place={selectedPlace} />
           {highlightedPlaces.length > 0 && (
             <MapFitHighlights places={highlightedPlaces} />
           )}
@@ -179,11 +206,17 @@ export default function DashboardMap() {
               <p className="text-xs text-slate-400">{location.label}</p>
             </Popup>
           </Marker>
-          <Markers places={places} highlightedIds={highlightedIds} />
+          <Markers places={places} highlightedPlaces={highlightedPlaces} />
+          {orphanSelectedPlace && (
+            <Marker
+              position={[orphanSelectedPlace.lat, orphanSelectedPlace.lng]}
+              icon={categoryIcon(orphanSelectedPlace.category, true)}
+              zIndexOffset={1500}
+              eventHandlers={{ click: () => setSelectedPlace(orphanSelectedPlace) }}
+            />
+          )}
         </MapContainer>
       )}
-
-      <PlaceDetailPanel place={selectedPlace} />
     </section>
   )
 }

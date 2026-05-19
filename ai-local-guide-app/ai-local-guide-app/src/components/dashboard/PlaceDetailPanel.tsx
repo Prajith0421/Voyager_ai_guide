@@ -43,7 +43,7 @@ export default function PlaceDetailPanel({ place }: PlaceDetailPanelProps) {
             <button
               type="button"
               onClick={() => setSelectedPlace(null)}
-              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-black/80 flex items-center justify-center text-sm border border-white/20"
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 backdrop-blur-md text-white hover:bg-black/80 flex items-center justify-center text-sm border border-white/20 transition-transform hover:scale-110 active:scale-95"
               aria-label="Close"
             >
               ×
@@ -74,9 +74,9 @@ export default function PlaceDetailPanel({ place }: PlaceDetailPanelProps) {
 
             <p className="text-sm text-slate-200 leading-relaxed">{placeDescription(place)}</p>
 
-            <div className="place-ai-insight rounded-xl p-3.5 border border-violet-400/35 bg-[#1a1040]">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-violet-200 mb-2">
-                ✨ AI insight
+            <div className="place-ai-insight ai-insight-glow rounded-xl p-3.5 border border-violet-400/35 bg-[#1a1040] relative">
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2">
+                <span className="shimmer-text">✨ AI insight</span>
               </p>
               <p className="text-sm text-slate-100 leading-relaxed">
                 Ask the companion about{' '}

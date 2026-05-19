@@ -65,6 +65,16 @@ export async function savePlace(
   const sb = getSupabase()
   if (!sb) throw new Error('Supabase not configured')
 
+  const { data: existing, error: lookupError } = await sb
+    .from('saved_places')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('place_id', place.place_id)
+    .maybeSingle()
+
+  if (lookupError) throw lookupError
+  if (existing) return
+
   const { error } = await sb.from('saved_places').insert({
     user_id: userId,
     place_id: place.place_id,
@@ -75,7 +85,10 @@ export async function savePlace(
     address: place.address,
   })
 
-  if (error) throw error
+  if (error) {
+    if (error.code === '23505') return
+    throw error
+  }
 }
 
 export async function removeSavedPlace(id: string) {

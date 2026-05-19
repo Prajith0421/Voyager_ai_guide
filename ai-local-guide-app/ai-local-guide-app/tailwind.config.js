@@ -37,6 +37,8 @@ export default {
         'fade-up': 'fadeUp 0.5s ease-out',
         'pulse-soft': 'pulseSoft 2.5s ease-in-out infinite',
         shimmer: 'shimmer 2s infinite',
+        float: 'float 6s ease-in-out infinite',
+        'glow-pulse': 'glowPulse 3s ease-in-out infinite',
       },
       keyframes: {
         fadeUp: {
@@ -50,6 +52,14 @@ export default {
         shimmer: {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
+        },
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-8px)' },
+        },
+        glowPulse: {
+          '0%, 100%': { boxShadow: '0 0 24px rgba(139, 92, 246, 0.25)' },
+          '50%': { boxShadow: '0 0 40px rgba(99, 102, 241, 0.45)' },
         },
       },
     },

@@ -17,6 +17,9 @@ interface AppUIContextValue {
   highlightedPlaces: Place[]
   setHighlightedPlaces: (places: Place[]) => void
   focusPlacesOnMap: (places: Place[]) => void
+  pendingOpenPlace: Place | null
+  openPlaceOnDashboard: (place: Place) => void
+  clearPendingOpenPlace: () => void
   recentSearches: string[]
   addRecentSearch: (query: string) => void
 }
@@ -26,6 +29,7 @@ const AppUIContext = createContext<AppUIContextValue | null>(null)
 export function AppUIProvider({ children }: { children: ReactNode }) {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
   const [highlightedPlaces, setHighlightedPlaces] = useState<Place[]>([])
+  const [pendingOpenPlace, setPendingOpenPlace] = useState<Place | null>(null)
   const [recentSearches, setRecentSearches] = useState<string[]>([])
 
   useEffect(() => {
@@ -56,6 +60,16 @@ export function AppUIProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const openPlaceOnDashboard = useCallback((place: Place) => {
+    setPendingOpenPlace(place)
+    setSelectedPlace(place)
+    setHighlightedPlaces([place])
+  }, [])
+
+  const clearPendingOpenPlace = useCallback(() => {
+    setPendingOpenPlace(null)
+  }, [])
+
   const value = useMemo(
     () => ({
       selectedPlace,
@@ -63,10 +77,22 @@ export function AppUIProvider({ children }: { children: ReactNode }) {
       highlightedPlaces,
       setHighlightedPlaces,
       focusPlacesOnMap,
+      pendingOpenPlace,
+      openPlaceOnDashboard,
+      clearPendingOpenPlace,
       recentSearches,
       addRecentSearch,
     }),
-    [selectedPlace, highlightedPlaces, focusPlacesOnMap, recentSearches, addRecentSearch]
+    [
+      selectedPlace,
+      highlightedPlaces,
+      focusPlacesOnMap,
+      pendingOpenPlace,
+      openPlaceOnDashboard,
+      clearPendingOpenPlace,
+      recentSearches,
+      addRecentSearch,
+    ]
   )
 
   return <AppUIContext.Provider value={value}>{children}</AppUIContext.Provider>

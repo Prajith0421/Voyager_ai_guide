@@ -9,7 +9,8 @@ create table if not exists saved_places (
   lat double precision not null,
   lng double precision not null,
   address text,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  unique (user_id, place_id)
 );
 
 create table if not exists saved_chats (
